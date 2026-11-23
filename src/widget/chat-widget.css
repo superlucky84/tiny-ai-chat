@@ -1,0 +1,30 @@
+:host {
+  --tac-accent: #2563eb;
+  --tac-accent-text: #fff;
+  --tac-z-index: 2147483000;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: var(--tac-z-index);
+  font: 14px/1.5 var(--tac-font, system-ui, sans-serif);
+}
+
+.launcher {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--tac-accent);
+  color: var(--tac-accent-text);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+  cursor: pointer;
+}
+
+.launcher svg {
+  width: 26px;
+  height: 26px;
+  fill: currentColor;
+}

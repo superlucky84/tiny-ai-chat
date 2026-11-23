@@ -5,7 +5,7 @@
 | Phase | 내용 | 상태 |
 |---|---|---|
 | 0 | 문서 작성 | done |
-| 1 | 저장소 뼈대와 CI | todo |
+| 1 | 저장소 뼈대와 CI | done |
 | 2 | 통신 규약과 중계 서버 핵심 | todo |
 | 3 | 제공자 어댑터 3개 | todo |
 | 4 | 위젯 UI와 상태 | todo |
@@ -32,22 +32,57 @@ Files:
 - `docs/v0.1/IMPLEMENT.md` (added)
 - `docs/v0.1/MANUAL_TEST_CHECKLIST.md` (added)
 
-## Phase 1 — 저장소 뼈대와 CI: todo
+## Phase 1 — 저장소 뼈대와 CI: done
 
 Refs: RQ-1, RQ-10, RQ-16, DC-1, DC-10, DC-12, DC-16
 
 진입: Phase 0 승인.
 
-- [ ] `npx create-lithent@latest`의 widget 템플릿으로 시작해 `src/widget/`로 옮기고 이름을 `tiny-ai-chat`으로
-- [ ] pnpm, TypeScript strict, ESLint·Prettier, Vitest(jsdom), `package.json` `exports`(DESIGN §2)와 선택 peer 의존성
-- [ ] 빌드: 위젯 IIFE+ESM, 중계 서버·어댑터·규약 ESM+`.d.ts` (SDK는 external)
-- [ ] 크기 검사 스크립트(템플릿의 `scripts/size.mjs`): IIFE brotli 10KB 넘으면 실패
-- [ ] 빈 위젯(`<tiny-ai-chat>`가 런처 버튼만 그림)의 크기 기록 — lithent 몫 확인
-- [ ] GitHub Actions: lint·type-check·test·build·size (Node 22)
-- [ ] `LICENSE`(MIT), README 뼈대("lithent로 만들었다" 포함)
+- [x] `npx create-lithent@0.5.0 --template widget`으로 만든 뼈대에서 설정(ESLint·Prettier·EditorConfig·tsconfig·vite·크기 검사)을
+  가져와 `src/widget/`에 `<tiny-ai-chat>`을 둠
+- [x] pnpm 10.28, TypeScript strict, ESLint(스크립트는 Node 전역), Prettier, Vitest 5(기본 Node, 위젯 테스트는 파일 첫 줄
+  `// @vitest-environment jsdom`), `package.json` `exports`는 위젯(`.`)만
+- [x] 빌드: 위젯 IIFE(`dist/tiny-ai-chat.js`)+ESM(`.mjs`), `dist/index.html`(호스트 페이지가 빌드 결과를 script로 로드)
+- [x] 크기 검사: IIFE brotli 10KB 넘으면 실패 (`scripts/size.mjs`, DC-12)
+- [x] 빈 위젯 크기 기록 — 아래
+- [x] GitHub Actions `CI`: PR과 `main` 푸시에서 lint·format:check·type-check·test·build(크기) (Node 22)
+- [x] `LICENSE`(MIT), README 뼈대("Built with lithent" 포함)
+- 계획에서 바꾼 것: 중계 서버·어댑터·규약의 빌드와 `exports`는 그 코드가 생기는 Phase 2~3에서 붙인다. 빈 모듈을 미리 내지 않는다.
+- `package.json`은 Phase 9까지 `"private": true` (실수로 발행되지 않게).
 
-기본 테스트: 빈 위젯이 정의되고 런처가 보이는 단위 테스트 1개.
-완료: CI 통과, 빈 위젯 크기가 IMPLEMENT에 기록됨.
+빈 위젯 크기 (2026-11-23, lithent 1.26.0 + `lithent/element` + 런처 버튼):
+
+| 파일 | raw | gzip | brotli |
+|---|---|---|---|
+| `dist/tiny-ai-chat.js` (IIFE) | 13.78KB | 5.89KB | **5.43KB** |
+| `dist/tiny-ai-chat.mjs` (ESM, 압축 안 함) | 18.94KB | 6.69KB | 6.07KB |
+
+남은 예산은 약 4.6KB(brotli). DESIGN §7 예상(lithent 몫 5.8KB)보다 0.4KB 여유가 있다.
+
+기본 테스트: `src/widget/ChatWidget.test.ts` — 요소 등록·런처 렌더, `labels` 프로퍼티 반영 (2개 통과).
+완료: 로컬에서 lint·format:check·type-check·test·build 통과. CI 결과는 PR에서 확인.
+
+Files:
+- `.editorconfig` (added)
+- `.github/workflows/ci.yml` (added)
+- `.gitignore` (added)
+- `.nvmrc` (added)
+- `.prettierrc` (added)
+- `LICENSE` (added)
+- `README.md` (added)
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `eslint.config.js` (added)
+- `index.html` (added)
+- `package.json` (added)
+- `pnpm-lock.yaml` (added)
+- `scripts/size.mjs` (added)
+- `src/widget/ChatWidget.test.ts` (added)
+- `src/widget/ChatWidget.tsx` (added)
+- `src/widget/chat-widget.css` (added)
+- `src/widget/chatProps.ts` (added)
+- `src/widget/main.ts` (added)
+- `tsconfig.json` (added)
+- `vite.config.js` (added)
 
 ## Phase 2 — 통신 규약과 중계 서버 핵심: todo
 
@@ -166,7 +201,7 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 0 완료. 문서가 `main` 첫 커밋.
-- 다음: Phase 1 — 작업 브랜치에서 저장소 뼈대와 CI.
+- 상태: Phase 1 완료(작업 브랜치 `ccr-3e48bc24-eapswq`).
+- 다음: Phase 2 — `src/shared/protocol.ts`와 `createRelay`.
 - 막힌 것: 없음.
-- 최신 커밋: `main` 첫 커밋(문서).
+- 최신 커밋: Phase 1 커밋 (PR로 `main`에 합칠 예정).
