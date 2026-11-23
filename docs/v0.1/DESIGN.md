@@ -167,8 +167,11 @@ JSON `{ "error": { "code": "...", "message": "..." } }`.
 | 405 | `method_not_allowed` | POST·OPTIONS 외 |
 | 413 | `too_large` | 메시지 수·길이 상한 초과 (상한을 넘는 오래된 메시지는 잘라서 보내므로 보통은 마지막 메시지가 너무 길 때) |
 | 429 | `rate_limited` | 사용자 훅이 거절 |
-| 502 | `upstream_error` | 제공자 오류 (인증·요금·과부하 등). 자세한 내용은 방문자에게 보이지 않고 `onError` 로그로만 |
 | 500 | `internal` | 그 밖 |
+
+스트림 안에서만 오는 코드: `upstream_error` — 제공자 오류(인증·요금·과부하 등). 중계 서버는 keep-alive를 보내려고
+본문 검사가 끝나면 바로 `200` 머리글을 보내므로(DC-19), 제공자 오류는 상태 코드가 아니라 `event: error`로 온다.
+자세한 내용은 방문자에게 보이지 않고 `onError` 로그로만 남는다.
 
 위젯 쪽 전용: `network_error`(연결 실패·중간 끊김), `aborted`(사용자가 멈춤).
 
@@ -176,7 +179,8 @@ JSON `{ "error": { "code": "...", "message": "..." } }`.
 
 - `OPTIONS` 미리 요청에 `Access-Control-Allow-Origin: <요청 출처>`, `-Methods: POST`, `-Headers: content-type` +
   사용자가 쓰는 헤더, `Max-Age: 600`, `Vary: Origin`.
-- `with-credentials`를 쓰면 `Access-Control-Allow-Credentials: true` (출처 목록이 `*`이면 허용하지 않는다).
+- 중계 서버 옵션 `allowCredentials: true`이면 `Access-Control-Allow-Credentials: true`를 보낸다(위젯의 `with-credentials`와 짝).
+  출처 목록이 `'*'`이면 함께 쓸 수 없다(`createRelay`가 오류).
 
 ## 5. 중계 서버 (`tiny-ai-chat/relay`)
 
@@ -200,6 +204,7 @@ export default {
 | `system` | 없음 | 시스템 프롬프트. 방문자가 알아낼 수 있으니 비밀을 넣지 말라고 문서에 적는다 |
 | `allowedOrigins` | (필수) | 정확한 출처 목록, 또는 명시적 `'*'` (DC-9) |
 | `allowNoOrigin` | false | `Origin` 헤더 없는 요청(curl·서버 간 호출)을 받을지 |
+| `allowCredentials` | false | 쿠키를 함께 받는다(`Access-Control-Allow-Credentials`). `allowedOrigins: '*'`와 함께 쓸 수 없다 |
 | `maxOutputTokens` | 4096 | 답 하나의 출력 토큰 상한 (DC-8) |
 | `maxMessages` | 20 | 이보다 오래된 메시지는 잘라서 보낸다 |
 | `maxMessageChars` | 4000 | 메시지 하나의 글자 수 상한. 넘으면 413 |
@@ -210,7 +215,9 @@ export default {
 - `createRelay`는 옵션 객체 또는 `env => 옵션` 함수를 받는다. 핸들러 모양은 `(request, env?, ctx?) => Promise<Response>`로
   Workers의 `fetch(request, env, ctx)`에 그대로 맞는다. Node는 템플릿의 작은 어댑터(`node:http` ↔ `Request`/`Response`)로 붙인다.
 - 방문자가 연결을 끊으면(`request.signal`) 제공자 요청도 끊는다 — 비용 절약.
-- 요청 처리 순서: 메서드 → 출처 → `onRequest` → 본문 검사·자르기 → `provider.stream()` → SSE.
+- 요청 처리 순서: 메서드 → 출처 → `onRequest` → 본문 검사·자르기 → `200` 머리글 → `provider.stream()` → SSE.
+- 본문 크기 상한: `maxMessages × maxMessageChars × 2 + 4096`자. 넘으면 JSON을 풀기 전에 413.
+- 잘랐을 때 맨 앞이 `assistant`면 그것도 뺀다(첫 메시지는 `user`여야 하는 제공자가 있다).
 
 ### 5.1 템플릿 (`templates/`)
 
@@ -316,6 +323,9 @@ type Provider = {
 - [x] **DC-14 스트리밍 중 렌더는 프레임당 한 번.** 네트워크 조각마다 다시 그리면 긴 답에서 마크다운 파싱이 쌓인다.
 - [x] **DC-15 완성된 답만 스크린리더에 알린다.** 글자마다 읽히는 live region은 사용할 수 없을 만큼 시끄럽다.
 - [x] **DC-16 도구: pnpm, TypeScript, Vite, Vitest, Playwright, MIT.** lithent 저장소와 같아 유지가 쉽다.
+- [x] **DC-19 제공자 오류는 스트림 안에서 알린다.** 첫 글자를 기다린 뒤 머리글을 보내면, 사고 시간이 긴 모델에서 프록시의
+  첫 바이트 시간 제한(예: Cloudflare 100초)에 걸릴 수 있고 keep-alive도 보낼 수 없다. 그래서 요청 검사가 끝나면 바로 `200`을 보내고,
+  제공자 오류는 `event: error`로 보낸다. 요청 자체의 문제(400·403·405·413·429)는 지금처럼 상태 코드로 답한다.
 - [ ] **DC-17 데모 페이지 — TBD.** 후보: (a) GitHub Pages에 위젯을 두고 데모 페이지 스크립트가 `fetch`를 가로채 정해진 답을
   스트리밍(키 없음, 비용 없음), (b) 사용자 계정의 Workers에 낮은 상한으로 실제 모델 연결. Phase 9 전에 사용자와 정한다.
 - [x] **DC-18 첫 커밋은 `main`, 이후는 작업 브랜치 + PR.** 사용자 결정(2026-11-23). 저장소가 비어 있어 처음 푸시한 브랜치가
