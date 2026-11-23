@@ -1,8 +1,7 @@
 {
   "name": "tiny-ai-chat",
-  "version": "0.0.0",
-  "private": true,
-  "description": "An AI chat widget for any website in about 10 KB, with a relay that keeps your API key on the server and streams from OpenAI, Gemini or Claude. Built with lithent.",
+  "version": "0.1.0",
+  "description": "An AI chat widget for any website in under 10 KB, with a relay that keeps your API key on the server and streams from OpenAI, Gemini or Claude. Built with lithent.",
   "keywords": [
     "ai",
     "chat",
@@ -84,7 +83,8 @@
     "check:templates": "node scripts/check-templates.mjs",
     "test:mutations": "node scripts/check-mutations.mjs",
     "test:e2e": "playwright test",
-    "check:package": "node scripts/check-package.mjs"
+    "check:package": "node scripts/check-package.mjs",
+    "prepublishOnly": "pnpm build"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": "^1.12.0",
