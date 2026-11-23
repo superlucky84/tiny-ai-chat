@@ -13,7 +13,7 @@
 | 6 | 배포 템플릿과 로컬 실행 | done |
 | 7 | Test Hardening | done |
 | 8 | Integration Test | done (실제 키 점검 M-1~M-3 보류) |
-| 9 | 문서·데모·릴리스 준비 | todo |
+| 9 | 문서·데모·릴리스 준비 | in progress |
 
 공통 완료 조건: `pnpm lint`, `pnpm type-check`, `pnpm test` 통과, 위젯을 건드린 단계는 `pnpm build` 뒤 크기 예산(10KB) 안,
 단계마다 이 표와 해당 절의 체크박스·`Files:` 갱신.
@@ -344,25 +344,24 @@ Files:
 - `tsconfig.json` (modified)
 - `vite.config.js` (modified)
 
-## Phase 9 — 문서·데모·릴리스 준비: todo
+## Phase 9 — 문서·데모·릴리스 준비: in progress
 
 Refs: RQ-15, DC-17
 
 진입: Phase 8 완료, DC-17 결정.
 
-- [ ] README(영어): 3분 시작(위젯 태그 + Workers 템플릿), 속성·이벤트·CSS 변수, 규약, 보안 주의, "Built with lithent"
-- [ ] README 한국어판
-- [ ] 데모 페이지(DC-17에 따라)
-- [ ] CHANGELOG, 버전 0.1.0
-- [ ] 발행 절차 문서(첫 발행은 사용자가 수동, 이후 신뢰 발행)
-- [ ] 수동 점검 M-4~M-9
-
-완료: 사용자가 npm 첫 발행, M-9 통과.
+- [x] README(영어): 3분 시작(중계 서버 템플릿 → 위젯 태그), 속성·프로퍼티·이벤트·CSS 변수·part 표, 중계 서버와 어댑터 옵션 표,
+  공개 전 점검, 통신 규약, "Built with lithent", 개발 명령
+- [x] README 한국어판(`README.ko.md`): 시작 방법, 한국어 라벨 예시, 주요 항목 요약, 공개 전 점검 — 전체 표는 영어판으로 연결
+- [ ] 데모 페이지(DC-17에 따라) — 사용자 결정 대기
+- [x] `CHANGELOG.md` 0.1.0(미발행)
+- [x] `RELEASING.md`: 첫 발행은 사용자가 수동(`npm publish`) → npm 신뢰 발행 설정 → 태그·GitHub 릴리스, 발행 뒤 점검
+- [ ] 버전 0.1.0, `"private": true` 해제 — 릴리스 PR에서
+- [ ] 수동 점검 M-4~M-9 (M-4·M-5는 실제 키 필요 — 보류)
 
 ## 인계
 
-- 상태: Phase 1~8 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2~8은 로컬 커밋.
-  2026-11-23 현재 GitHub에서 PR #1은 아직 열려 있음(사용자는 병합했다고 함 — 확인 필요).
-- 다음: Phase 9 — README(영어·한국어), 데모(DC-17 결정 필요), CHANGELOG, 발행 절차.
-- 막힌 것: 실제 키 점검(M-1~M-4)은 사용자가 준비되면 진행.
-- 최신 커밋: Phase 8 커밋.
+- 상태: Phase 1 병합(PR #1). Phase 2~8은 PR #2. Phase 9 문서(README 영어·한국어, CHANGELOG, RELEASING) 작성.
+- 다음: DC-17(데모 방식) 결정 → 데모 페이지 → 릴리스 PR(버전 0.1.0, `private` 해제).
+- 막힌 것: 실제 키 점검(M-1~M-5)은 사용자가 준비되면 진행.
+- 최신 커밋: Phase 9 문서 커밋.
