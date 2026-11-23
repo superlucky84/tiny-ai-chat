@@ -105,6 +105,9 @@ test.describe('on a host page', () => {
     await chat.locator('.launcher').click();
     await send(chat, 'Hello');
     await expect(lastReply(chat)).toContainText('second');
+    // The reply is saved once it has finished, when Send comes back. Reloading
+    // while the stream is still closing would cut it off (seen in Firefox).
+    await expect(chat.locator('form button')).toHaveText('Send');
     await page.reload();
     await chat.locator('.launcher').click();
     await expect(chat.locator('.msg.user')).toHaveText('Hello');
@@ -201,5 +204,29 @@ test.describe('variants', () => {
       'data-code',
       'forbidden_origin'
     );
+  });
+});
+
+test.describe('demo site', () => {
+  test('answers from prepared replies without a server', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/demo/');
+    const chat = chatOf(page, '#corner-chat');
+    await chat.locator('.launcher').click();
+    await send(chat, 'How do I install it?');
+    await expect(lastReply(chat).locator('pre code')).toContainText(
+      '<tiny-ai-chat endpoint='
+    );
+    await expect(chat.locator('form button')).toHaveText('Send');
+    const inline = chatOf(page, '#inline-chat');
+    await send(inline, 'How big is it?');
+    await expect(lastReply(inline).locator('strong')).toHaveText('8.9 KB');
+    await page.getByRole('button', { name: 'Teal' }).click();
+    await expect(chat.locator('.launcher')).toHaveCSS(
+      'background-color',
+      'rgb(15, 118, 110)'
+    );
+    expect(errors).toEqual([]);
   });
 });

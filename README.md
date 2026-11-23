@@ -20,6 +20,8 @@ Gemini or Anthropic Claude.
 - **Bring your own backend.** The widget speaks a small documented protocol
   (JSON in, server-sent events out), so any server can answer it.
 
+**[Live demo](https://superlucky84.github.io/tiny-ai-chat/)** (runs without an AI: prepared replies, the real widget)
+
 > Status: v0.1 in development, not published to npm yet. 한국어:
 > [README.ko.md](./README.ko.md)
 

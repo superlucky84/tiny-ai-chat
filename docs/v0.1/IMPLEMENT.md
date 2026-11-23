@@ -353,7 +353,13 @@ Refs: RQ-15, DC-17
 - [x] README(영어): 3분 시작(중계 서버 템플릿 → 위젯 태그), 속성·프로퍼티·이벤트·CSS 변수·part 표, 중계 서버와 어댑터 옵션 표,
   공개 전 점검, 통신 규약, "Built with lithent", 개발 명령
 - [x] README 한국어판(`README.ko.md`): 시작 방법, 한국어 라벨 예시, 주요 항목 요약, 공개 전 점검 — 전체 표는 영어판으로 연결
-- [ ] 데모 페이지(DC-17에 따라) — 사용자 결정 대기
+- [x] 데모 페이지(DC-17, 사용자 결정 2026-11-23: 추천안 (a)): `demo/index.html`(소개·설치 코드·색 바꾸기 버튼·inline 예시·모서리 위젯),
+  `demo/fake-relay.js`(`/demo-relay`로 가는 fetch만 가로채 규약대로 SSE 답 — 설치·크기·제공자 질문에 준비된 답, 그 밖은 안내),
+  `scripts/build-demo.mjs`(build 끝에서 `demo-dist/`로 복사, 위젯은 빌드한 IIFE를 script 태그로), `.github/workflows/pages.yml`(`main` 푸시 때
+  Pages 배포 — 저장소 설정 Pages 소스를 GitHub Actions로 켜야 함), README 두 곳에 데모 링크. E2E에 데모 시나리오 1개(질문 2개·색 바꾸기·페이지 오류 0).
+  처음에는 "How big is it?"이 설치 답("how")과 이어서 기본 답("big" 없음)으로 가서, 질문 짝을 더 구체적으로 고침
+- [x] CI: Firefox에서 "새로고침 뒤 보존" E2E가 실패 — 테스트가 마지막 글자를 보자마자 새로고침해 스트림이 닫히기 전 요청이 끊겼고,
+  위젯은 끝난 답만 저장하므로 답이 빠졌다. 테스트가 답이 끝날 때(Send 버튼 복귀)까지 기다리도록 고침(제품 동작은 그대로)
 - [x] `CHANGELOG.md` 0.1.0(미발행)
 - [x] `RELEASING.md`: 첫 발행은 사용자가 수동(`npm publish`) → npm 신뢰 발행 설정 → 태그·GitHub 릴리스, 발행 뒤 점검
 - [ ] 버전 0.1.0, `"private": true` 해제 — 릴리스 PR에서
@@ -361,7 +367,7 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1 병합(PR #1). Phase 2~8은 PR #2. Phase 9 문서(README 영어·한국어, CHANGELOG, RELEASING) 작성.
-- 다음: DC-17(데모 방식) 결정 → 데모 페이지 → 릴리스 PR(버전 0.1.0, `private` 해제).
+- 상태: Phase 1 병합(PR #1). Phase 2~8과 Phase 9 문서·데모는 PR #2.
+- 다음: PR #2 CI 확인 → 병합 → 저장소 설정에서 Pages 켜기(사용자) → 릴리스 PR(버전 0.1.0, `private` 해제) → npm 첫 발행(사용자).
 - 막힌 것: 실제 키 점검(M-1~M-5)은 사용자가 준비되면 진행.
-- 최신 커밋: Phase 9 문서 커밋.
+- 최신 커밋: Phase 9 데모 커밋.

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tiny-ai-chat — an AI chat widget for any site</title>
+    <meta
+      name="description"
+      content="An AI chat widget for any website in under 10 KB. Your API key stays on your server; answers stream from OpenAI, Gemini or Claude."
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --text: #0f172a;
+        --muted: #475569;
+        --bg: #f8fafc;
+        --card: #fff;
+        --line: #e2e8f0;
+        --accent: #2563eb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --text: #e2e8f0;
+          --muted: #94a3b8;
+          --bg: #0b1120;
+          --card: #111827;
+          --line: #1f2937;
+          --accent: #60a5fa;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.6 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 48px 16px 120px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(30px, 6vw, 44px);
+        line-height: 1.15;
+      }
+      .lead {
+        margin: 0 0 24px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+      .links a {
+        margin-right: 16px;
+        color: var(--accent);
+      }
+      pre {
+        overflow-x: auto;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--card);
+        font-size: 13px;
+      }
+      ul {
+        padding-left: 20px;
+      }
+      h2 {
+        margin-top: 40px;
+        font-size: 22px;
+      }
+      .note {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .swatches button {
+        margin: 0 8px 8px 0;
+        padding: 6px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        cursor: pointer;
+      }
+      #inline-chat {
+        --tac-height: 360px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>tiny-ai-chat</h1>
+      <p class="lead">
+        An AI chat widget for any website in under 10 KB. Your API key stays on
+        your server; answers stream from OpenAI, Gemini or Claude.
+      </p>
+      <p class="links">
+        <a href="https://github.com/superlucky84/tiny-ai-chat">GitHub</a>
+        <a href="https://github.com/superlucky84/tiny-ai-chat#quick-start"
+          >Quick start</a
+        >
+        <a href="https://github.com/superlucky84/lithent">Built with lithent</a>
+      </p>
+
+      <p>
+        <strong>Try it:</strong> the chat button is in the bottom-right corner.
+      </p>
+      <p class="note">
+        This demo runs without an AI or a server: a small script answers from
+        prepared replies using the same protocol as a real relay, so what you
+        see is the real widget.
+      </p>
+
+      <h2>One script, one tag</h2>
+      <pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/tiny-ai-chat/dist/tiny-ai-chat.js"&gt;&lt;/script&gt;
+&lt;tiny-ai-chat endpoint="https://your-relay.example.com/api/chat"&gt;&lt;/tiny-ai-chat&gt;</code></pre>
+      <ul>
+        <li>
+          Shadow DOM: your page's CSS and the widget leave each other alone.
+        </li>
+        <li>
+          Streaming, stop, retry, safe Markdown, keyboard and screen readers.
+        </li>
+        <li>
+          Full screen on phones; the conversation stays across page loads in the
+          tab.
+        </li>
+      </ul>
+
+      <h2>Make it yours</h2>
+      <p>Colors, fonts and sizes are CSS variables:</p>
+      <p class="swatches">
+        <button type="button" data-accent="#2563eb">Blue</button>
+        <button type="button" data-accent="#0f766e">Teal</button>
+        <button type="button" data-accent="#c026d3">Magenta</button>
+        <button type="button" data-theme="dark">Dark</button>
+        <button type="button" data-theme="light">Light</button>
+      </p>
+
+      <h2>Or put it inline</h2>
+      <tiny-ai-chat
+        id="inline-chat"
+        endpoint="./demo-relay"
+        position="inline"
+        heading="Inline chat"
+        greeting="This one sits in the page. Ask me how to install it."
+        persist="none"
+      ></tiny-ai-chat>
+    </main>
+
+    <tiny-ai-chat
+      id="corner-chat"
+      endpoint="./demo-relay"
+      heading="tiny-ai-chat demo"
+      greeting="Hi! I answer from prepared replies in this demo. Ask how to install it, how big it is, or which AI providers it supports."
+    ></tiny-ai-chat>
+
+    <script src="./fake-relay.js"></script>
+    <script src="./tiny-ai-chat.js"></script>
+    <script>
+      const chats = document.querySelectorAll('tiny-ai-chat');
+      for (const button of document.querySelectorAll('.swatches button')) {
+        button.addEventListener('click', () => {
+          for (const chat of chats) {
+            if (button.dataset.accent) {
+              chat.style.setProperty('--tac-accent', button.dataset.accent);
+            } else chat.setAttribute('theme', button.dataset.theme);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

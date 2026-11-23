@@ -72,7 +72,13 @@ createServer(async (req, res) => {
   if (path === '/api/forbidden') return forbidden(req, res);
   const file = path.startsWith('/pages/')
     ? join(root, 'e2e', normalize(path))
-    : join(root, 'dist', normalize(path === '/' ? '/index.html' : path));
+    : path.startsWith('/demo/')
+      ? join(
+          root,
+          'demo-dist',
+          normalize(path.slice(5) === '/' ? '/index.html' : path.slice(5))
+        )
+      : join(root, 'dist', normalize(path === '/' ? '/index.html' : path));
   try {
     const body = await readFile(file);
     res.writeHead(200, {

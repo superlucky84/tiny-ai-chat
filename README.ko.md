@@ -17,6 +17,8 @@ OpenAI·Google Gemini·Anthropic Claude의 답을 스트리밍으로 보내 줍�
 - **내 백엔드도 가능.** 위젯은 작은 공개 규약(JSON 요청, server-sent events 응답)으로 통신하므로
   어느 서버든 같은 규약으로 답하면 됩니다.
 
+**[데모](https://superlucky84.github.io/tiny-ai-chat/)** (AI 없이 준비된 답으로 동작 — 위젯은 실제 그대로)
+
 > 상태: v0.1 개발 중, 아직 npm에 발행하지 않았습니다. English: [README.md](./README.md)
 
 ## 빠른 시작

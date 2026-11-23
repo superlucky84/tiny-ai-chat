@@ -47,6 +47,11 @@ export default tseslint.config(
     },
   },
   {
+    // The demo page's scripts run in the browser.
+    files: ['demo/**/*.js'],
+    languageOptions: { globals: globals.browser },
+  },
+  {
     // Build and check scripts run in Node and report to the terminal.
     files: ['scripts/**/*.mjs', 'e2e/**/*.mjs'],
     languageOptions: { globals: globals.node },
