@@ -362,12 +362,16 @@ Refs: RQ-15, DC-17
   위젯은 끝난 답만 저장하므로 답이 빠졌다. 테스트가 답이 끝날 때(Send 버튼 복귀)까지 기다리도록 고침(제품 동작은 그대로)
 - [x] `CHANGELOG.md` 0.1.0(미발행)
 - [x] `RELEASING.md`: 첫 발행은 사용자가 수동(`npm publish`) → npm 신뢰 발행 설정 → 태그·GitHub 릴리스, 발행 뒤 점검
-- [ ] 버전 0.1.0, `"private": true` 해제 — 릴리스 PR에서
+- [x] 릴리스 준비: 버전 0.1.0, `"private"` 해제, `prepublishOnly: pnpm build`, CHANGELOG 0.1.0,
+  `.github/workflows/release.yml`(`v*` 태그 → 태그와 버전 일치 확인 → 검사 → 이미 npm에 있으면 건너뜀 → npm 신뢰 발행),
+  RELEASING을 첫 발행(수동)·신뢰 발행 설정·이후 릴리스 순서로 다시 씀
+- [ ] npm 첫 발행 — 사용자
 - [ ] 수동 점검 M-4~M-9 (M-4·M-5는 실제 키 필요 — 보류)
 
 ## 인계
 
-- 상태: Phase 1 병합(PR #1). Phase 2~8과 Phase 9 문서·데모는 PR #2.
-- 다음: PR #2 CI 확인 → 병합 → 저장소 설정에서 Pages 켜기(사용자) → 릴리스 PR(버전 0.1.0, `private` 해제) → npm 첫 발행(사용자).
+- 상태: Phase 1~8과 Phase 9 문서·데모 병합(PR #1, #2). 릴리스 준비(버전 0.1.0 등)는 릴리스 PR.
+- 다음: 릴리스 PR 병합 → 사용자가 npm 첫 발행(RELEASING) → 신뢰 발행 설정 → GitHub 릴리스 `v0.1.0` → M-9.
+  데모는 저장소 설정에서 Pages를 켜면 배포된다.
 - 막힌 것: 실제 키 점검(M-1~M-5)은 사용자가 준비되면 진행.
-- 최신 커밋: Phase 9 데모 커밋.
+- 최신 커밋: 릴리스 준비 커밋.
