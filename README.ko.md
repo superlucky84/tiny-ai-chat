@@ -19,7 +19,7 @@ OpenAI·Google Gemini·Anthropic Claude의 답을 스트리밍으로 보내 줍�
 
 **[데모](https://superlucky84.github.io/tiny-ai-chat/)** (AI 없이 준비된 답으로 동작 — 위젯은 실제 그대로)
 
-> 상태: v0.1 개발 중, 아직 npm에 발행하지 않았습니다. English: [README.md](./README.md)
+> v0.1.0을 [npm](https://www.npmjs.com/package/tiny-ai-chat)에 발행했습니다. 실제 AI 회사 연결은 가짜 클라이언트 테스트로 확인했고, 실제 API로 하는 점검은 아직 남아 있습니다. English: [README.md](./README.md)
 
 ## 빠른 시작
 
