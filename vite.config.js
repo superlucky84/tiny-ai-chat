@@ -27,6 +27,15 @@ const hostPage = () => ({
     if (!html.includes(DEV_SCRIPT)) {
       this.error(`index.html must load the widget with ${DEV_SCRIPT}`);
     }
+    // Types for `import 'tiny-ai-chat'` (the element, its props and events).
+    this.emitFile({
+      type: 'asset',
+      fileName: `${fileName}.d.ts`,
+      source: readFileSync(
+        resolve(import.meta.dirname, 'src/widget/element.d.ts'),
+        'utf8'
+      ),
+    });
     this.emitFile({
       type: 'asset',
       fileName: 'index.html',

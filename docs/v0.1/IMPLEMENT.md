@@ -12,7 +12,7 @@
 | 5 | 안전한 마크다운 | done |
 | 6 | 배포 템플릿과 로컬 실행 | done |
 | 7 | Test Hardening | done |
-| 8 | Integration Test | todo |
+| 8 | Integration Test | done (실제 키 점검 M-1~M-3 보류) |
 | 9 | 문서·데모·릴리스 준비 | todo |
 
 공통 완료 조건: `pnpm lint`, `pnpm type-check`, `pnpm test` 통과, 위젯을 건드린 단계는 `pnpm build` 뒤 크기 예산(10KB) 안,
@@ -303,18 +303,46 @@ Files:
 - `src/widget/ChatWidget.test.ts` (modified)
 - `src/widget/markdown.test.tsx` (modified)
 
-## Phase 8 — Integration Test: todo
+## Phase 8 — Integration Test: done (실제 키 점검 보류)
 
 Refs: RQ-1, RQ-2, RQ-3, RQ-4, RQ-11, RQ-12, RQ-13, RQ-16
 
 진입: Phase 7 완료.
 
-- [ ] Playwright(Chromium·Firefox·WebKit): 빌드한 IIFE + Node 템플릿(가짜 제공자) — DESIGN §9 E2E 항목 전부
-- [ ] 설치 소비자 검사: `npm pack` → 빈 프로젝트에서 하위 경로 import, 타입(Bundler·NodeNext), IIFE 로드
-- [ ] CI에 E2E 추가
-- [ ] 실제 제공자 수동 점검 M-1~M-3 (사용자 키 필요)
+- [x] Playwright 1.63.0(이 환경에 미리 설치된 버전과 맞춤): `e2e/server.mjs`가 빌드 결과(`dist/`)와 시험 페이지를 내보내고, 빌드한 중계 서버를
+  보낸 말에 따라 답이 정해진 제공자(`slow`·`fail`·`echo history`)로 돌린다. `e2e/widget.spec.ts` 11개:
+  script 한 줄 로드와 페이지 CSS 격리, 스트리밍·마크다운(굵게·목록·코드·안전한 링크)·live region·입력칸 비우기, 글자가 늘어나는 것과 멈추기,
+  이전 대화 포함, 제공자 실패 시 alert·다시 시도 버튼, 새로고침 뒤 보존, 키보드만으로(Tab·Enter·Shift+Enter·Esc, 초점 복귀),
+  휴대폰 390px 전체 화면·가로 넘침 0·닫기, inline 패널, 위치·다크 테마·CSS 변수, 허용되지 않은 출처의 오류(`forbidden_origin`)
+- [x] 찾은 문제: 휴대폰에서 열린 패널이 화면을 덮으면 런처("Close chat")가 패널 아래에 가려진 채로 Tab·스크린리더에 남았다.
+  폭 480px 이하에서 열린 동안 런처를 숨김(머리글의 닫기 버튼 사용). 크기 8.87 → 8.88KB
+- [x] 위젯 타입: `src/widget/element.d.ts` → `dist/tiny-ai-chat.d.ts`(빌드가 복사). 요소 프로퍼티, `HTMLElementTagNameMap`,
+  `chat-*` 이벤트(`GlobalEventHandlersEventMap`). `src/widget/typesMatch.ts`가 선언한 props와 타입의 이름이 어긋나면 type-check 실패
+  (일부러 어긋나게 해 실패하는 것 확인)
+- [x] `scripts/check-package.mjs`(`pnpm check:package`, CI): `npm pack` → 빈 프로젝트에 설치(세 SDK 포함) →
+  묶음에 `dist`만(소스·개발용 호스트 페이지 제외, 24파일·78.1KB), 모든 하위 경로를 Node ESM으로 import(위젯 진입점은 DOM 없이도 오류 없음),
+  설치본으로 만든 중계 서버가 스트림, 모든 하위 경로를 쓰는 TS 파일이 `Bundler`·`NodeNext` 모두에서 타입 검사 통과
+- [x] CI: Quality에 `check:package`, `Browser (chromium·firefox·webkit)` 행렬 잡(빌드 → 브라우저 설치 → E2E)
+- [ ] 실제 제공자 수동 점검 M-1~M-3 — **보류**(2026-11-23 사용자: 키가 준비되면 다시 말하겠다, 일단 된다고 보고 진행)
 
-완료: CI E2E 통과, M-1~M-3 결과 기록.
+로컬 결과: E2E 11/11(Chromium — 이 환경에는 Chromium만 있어 Firefox·WebKit은 CI에서 확인), `check:package` 7항목, 단위 140개.
+
+Files:
+- `.github/workflows/ci.yml` (modified)
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `e2e/pages/variants.html` (added)
+- `e2e/server.mjs` (added)
+- `e2e/widget.spec.ts` (added)
+- `eslint.config.js` (modified)
+- `package.json` (modified)
+- `playwright.config.ts` (added)
+- `pnpm-lock.yaml` (modified)
+- `scripts/check-package.mjs` (added)
+- `src/widget/chat-widget.css` (modified)
+- `src/widget/element.d.ts` (added)
+- `src/widget/typesMatch.ts` (added)
+- `tsconfig.json` (modified)
+- `vite.config.js` (modified)
 
 ## Phase 9 — 문서·데모·릴리스 준비: todo
 
@@ -333,8 +361,8 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1~7 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2~7은 로컬 커밋.
+- 상태: Phase 1~8 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2~8은 로컬 커밋.
   2026-11-23 현재 GitHub에서 PR #1은 아직 열려 있음(사용자는 병합했다고 함 — 확인 필요).
-- 다음: Phase 8 — Playwright E2E(세 브라우저), 설치 소비자 검사.
+- 다음: Phase 9 — README(영어·한국어), 데모(DC-17 결정 필요), CHANGELOG, 발행 절차.
 - 막힌 것: 실제 키 점검(M-1~M-4)은 사용자가 준비되면 진행.
-- 최신 커밋: Phase 7 커밋.
+- 최신 커밋: Phase 8 커밋.

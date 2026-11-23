@@ -48,7 +48,7 @@ export default tseslint.config(
   },
   {
     // Build and check scripts run in Node and report to the terminal.
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'e2e/**/*.mjs'],
     languageOptions: { globals: globals.node },
     rules: { 'no-console': 'off' },
   }

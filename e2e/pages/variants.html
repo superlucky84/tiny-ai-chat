@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tiny-ai-chat variants</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font:
+          16px Georgia,
+          serif;
+      }
+      .themed {
+        --tac-accent: rgb(200, 30, 90);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Variants</h1>
+    <section id="inline-box">
+      <tiny-ai-chat
+        id="inline"
+        endpoint="/api/chat"
+        position="inline"
+        heading="Inline chat"
+        persist="none"
+      ></tiny-ai-chat>
+    </section>
+    <tiny-ai-chat
+      id="forbidden"
+      class="themed"
+      endpoint="/api/forbidden"
+      position="bottom-left"
+      theme="dark"
+      persist="none"
+    ></tiny-ai-chat>
+    <script src="/tiny-ai-chat.js"></script>
+  </body>
+</html>
