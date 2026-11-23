@@ -142,6 +142,38 @@ header strong {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.assistant {
+  white-space: normal;
+}
+.assistant p,
+.assistant ul,
+.assistant ol,
+.assistant pre {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+.assistant > :last-child {
+  margin-bottom: 0;
+}
+.assistant ul,
+.assistant ol {
+  padding-left: 20px;
+}
+code {
+  font:
+    0.92em ui-monospace,
+    Menlo,
+    monospace;
+}
+pre {
+  padding: 8px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--tac-bg);
+}
+.assistant a {
+  color: inherit;
+}
 .user {
   margin-left: auto;
   background: var(--tac-accent);

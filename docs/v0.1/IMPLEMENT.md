@@ -9,7 +9,7 @@
 | 2 | 통신 규약과 중계 서버 핵심 | done |
 | 3 | 제공자 어댑터 3개 | done |
 | 4 | 위젯 UI와 상태 | done |
-| 5 | 안전한 마크다운 | todo |
+| 5 | 안전한 마크다운 | done |
 | 6 | 배포 템플릿과 로컬 실행 | todo |
 | 7 | Test Hardening | todo |
 | 8 | Integration Test | todo |
@@ -193,18 +193,34 @@ Files:
 - `src/widget/chat-widget.css` (modified)
 - `src/widget/chat.ts` (added)
 
-## Phase 5 — 안전한 마크다운: todo
+## Phase 5 — 안전한 마크다운: done
 
 Refs: RQ-9, DC-11
 
 진입: Phase 4 완료.
 
-- [ ] `src/widget/markdown.ts`: DESIGN §3.6 문법 → lithent 가상 노드
-- [ ] 스트리밍 중 닫히지 않은 코드 블록 처리
-- [ ] 메시지 표시를 마크다운으로 교체
+- [x] `src/widget/markdown.tsx`: DESIGN §3.6 문법 → lithent 가상 노드. 문단(빈 줄로 나눔, 줄바꿈 유지), `**굵게**`, `*기울임*`·`_기울임_`
+  (단어 안의 `_`는 그대로 — `my_var_name`), `` `코드` ``, 코드 블록(안의 마크다운·HTML은 글자), `[글](url)`(괄호 한 단계 허용 — 위키백과 주소),
+  `-`·`*`·`+`·`1.`·`1)` 목록, `#`~`###` → 굵은 문단
+- [x] 글자는 항상 텍스트 노드. `innerHTML` 없음. 링크는 `http:`·`https:`·`mailto:`만 `<a target="_blank" rel="noopener noreferrer nofollow">`,
+  나머지 주소는 링크 없이 글만
+- [x] 닫히지 않은 코드 블록은 끝까지 코드 블록 (스트리밍 중 깜빡임 방지)
+- [x] 위젯: 답은 마크다운, 방문자 메시지와 인사말은 글자 그대로. 메시지 상자를 `<p>`에서 `<div>`로(블록 요소를 담으려고)
+- [x] Safari 14 대상이라 정규식 lookbehind를 쓰지 않음
 
-기본 테스트: 문법별 사례, XSS 사례(`<script>`, `<img onerror>`, `javascript:` 링크, `data:` 링크, 속성 주입), 닫히지 않은 블록.
-완료: 크기 예산 안(크기 기록), 단위 통과.
+기본 테스트: `markdown.test.tsx` 29개 — 문법 17가지, 빈 답, XSS(`<script>`, `<img onerror>`, `<iframe>`, 코드 블록 안 HTML은 요소가 생기지 않고 글자로),
+위험한 주소 6가지(`javascript:` 대소문자, `data:`, `vbscript:`, `//`, 상대 경로)는 링크 없이 글만, 주소로 속성 탈출 시도 시 속성이 `href`·`rel`·`target`뿐.
+처음 테스트에서 괄호가 든 주소(`javascript:alert(1)`)가 첫 `)`에서 잘려 `)`가 남는 것을 발견 — 링크는 만들어지지 않아 안전했지만,
+위키백과식 주소도 같은 이유로 잘리므로 괄호 한 단계를 허용하도록 고침.
+브라우저 확인: 굵게·목록·인라인 코드가 1280px·390px에서 그려짐, 가로 넘침 0.
+완료: 전체 117개 통과, 크기 **8.87KB** brotli (남은 1.13KB).
+
+Files:
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `src/widget/ChatWidget.tsx` (modified)
+- `src/widget/chat-widget.css` (modified)
+- `src/widget/markdown.test.tsx` (added)
+- `src/widget/markdown.tsx` (added)
 
 ## Phase 6 — 배포 템플릿과 로컬 실행: todo
 
@@ -265,7 +281,7 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1~4 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1(CI 통과, 병합 대기), Phase 2~4는 로컬 커밋.
-- 다음: Phase 5 — 안전한 마크다운 (남은 크기 1.72KB).
-- 막힌 것: 없음.
-- 최신 커밋: Phase 4 커밋.
+- 상태: Phase 1~5 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1(CI 통과, 병합 대기), Phase 2~5는 로컬 커밋.
+- 다음: Phase 6 — Node·Workers 템플릿, `pnpm dev`(가짜 제공자 relay), `pnpm dev:real`.
+- 막힌 것: 없음. 실제 제공자 점검(M-1~M-3)에는 사용자의 API 키가 필요.
+- 최신 커밋: Phase 5 커밋.

@@ -12,6 +12,7 @@ import type {
 } from './chatProps';
 import { defaultLabels } from './chatProps';
 import { ask, ChatError, store, type Turn } from './chat';
+import { markdown } from './markdown';
 
 type Props = ElementProps<typeof chatProps>;
 
@@ -241,15 +242,19 @@ export const ChatWidget = mount<Props>((renew, first) => {
               )}
             </header>
             <div class="messages" part="messages" ref={list}>
-              {props.greeting && <p class="msg assistant">{props.greeting}</p>}
+              {props.greeting && (
+                <div class="msg assistant">{props.greeting}</div>
+              )}
               {turns.map(turn =>
                 turn.content || turn.end !== 'error' ? (
-                  <p
+                  <div
                     class={`msg ${turn.role}${turn.end === 'length' ? ' cut' : ''}`}
                     part="message"
                   >
-                    {turn.content}
-                  </p>
+                    {turn.role === 'user'
+                      ? turn.content
+                      : markdown(turn.content)}
+                  </div>
                 ) : null
               )}
               {waiting && (
