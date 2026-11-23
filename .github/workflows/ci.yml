@@ -32,6 +32,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm type-check
       - run: pnpm test
+      - name: Check that the tests catch broken safeguards
+        run: pnpm test:mutations
       - name: Build and check the widget size budget
         run: pnpm build
       - name: Run the relay templates against the build

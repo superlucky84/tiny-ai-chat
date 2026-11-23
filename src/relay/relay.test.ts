@@ -337,3 +337,52 @@ describe('streaming', () => {
     await response.body?.cancel().catch(() => {});
   });
 });
+
+describe('relay hardening', () => {
+  it('reports a provider that fails before any text', async () => {
+    const onError = vi.fn();
+    const failing = {
+      name: 'failing',
+      // eslint-disable-next-line require-yield
+      async *stream() {
+        throw new Error('401 bad key');
+      },
+    };
+    const { relay } = relayWith({ provider: failing, onError });
+    expect(await events(await relay(post(ask())))).toEqual([
+      [
+        'error',
+        {
+          code: 'upstream_error',
+          message: 'The AI provider returned an error.',
+        },
+      ],
+    ]);
+    expect(onError).toHaveBeenCalledOnce();
+  });
+
+  it('does not log an abort before the first text as an error', async () => {
+    const provider = fakeProvider({ chunks: ['late'], delayMs: 200 });
+    const onError = vi.fn();
+    const { relay } = relayWith({ provider, onError });
+    const response = await relay(post(ask()));
+    await response.body!.cancel();
+    await vi.waitFor(() => expect(provider.calls[0].signal.aborted).toBe(true));
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('handles many requests at once independently', async () => {
+    const provider = fakeProvider({ chunks: ['a', 'b'], delayMs: 5 });
+    const { relay } = relayWith({ provider });
+    const replies = await Promise.all(
+      Array.from({ length: 20 }, (_, i) =>
+        relay(post(ask(`q${i}`))).then(events)
+      )
+    );
+    expect(replies.every(list => list.at(-1)?.[0] === 'done')).toBe(true);
+    expect(new Set(provider.calls.map(c => c.messages[0].content)).size).toBe(
+      20
+    );
+  });
+});

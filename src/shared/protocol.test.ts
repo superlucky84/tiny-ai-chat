@@ -94,3 +94,38 @@ describe('readEventStream', () => {
     expect(events).toEqual(expected);
   });
 });
+
+describe('createEventParser under random chunking', () => {
+  // A small seeded generator, so a failure can be replayed.
+  const random = (seed: number) => () => {
+    seed = (seed * 1103515245 + 12345) % 2 ** 31;
+    return seed / 2 ** 31;
+  };
+
+  it('gives the same events for 500 random splits and line-end styles', () => {
+    const events: StreamEvent[] = Array.from({ length: 20 }, (_, i) =>
+      i % 7 === 6
+        ? { event: 'done', data: { reason: 'stop' } }
+        : {
+            event: 'delta',
+            data: { text: `piece ${i} 한글 🎉\n${'x'.repeat(i)}` },
+          }
+    );
+    const want = events.map(e => [e.event, JSON.stringify(e.data)]);
+    const next = random(42);
+    for (let run = 0; run < 500; run++) {
+      const ending = ['\n', '\r\n', '\r'][run % 3];
+      const wire = events
+        .map(encodeEvent)
+        .join(KEEP_ALIVE)
+        .replace(/\n/g, ending);
+      const chunks: string[] = [];
+      for (let i = 0; i < wire.length;) {
+        const size = 1 + Math.floor(next() * 40);
+        chunks.push(wire.slice(i, i + size));
+        i += size;
+      }
+      expect(parse(chunks), `run ${run}`).toEqual(want);
+    }
+  });
+});

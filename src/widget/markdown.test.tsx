@@ -120,3 +120,22 @@ describe('markdown safety', () => {
     expect(link.getAttributeNames().sort()).toEqual(['href', 'rel', 'target']);
   });
 });
+
+describe('markdown on hostile input', () => {
+  it.each([
+    ['many asterisks', '*'.repeat(20000)],
+    ['unclosed bold runs', '**a '.repeat(5000)],
+    ['unclosed links', '[a]('.repeat(5000)],
+    ['nested brackets', '['.repeat(5000) + ']'.repeat(5000)],
+    ['backticks', '`'.repeat(20000)],
+    ['underscores and spaces', ' _a'.repeat(7000)],
+    ['parentheses in a link URL', `[x](${'('.repeat(5000)}`],
+    ['one long line', 'word '.repeat(40000)],
+    ['many list items', '- item\n'.repeat(5000)],
+    ['an unclosed fence with long text', '```\n' + 'code\n'.repeat(20000)],
+  ])('stays fast on %s', (_name, source) => {
+    const start = performance.now();
+    markdown(source);
+    expect(performance.now() - start).toBeLessThan(250);
+  });
+});

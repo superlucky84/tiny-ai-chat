@@ -382,3 +382,40 @@ describe('<tiny-ai-chat> persistence', () => {
     vi.restoreAllMocks();
   });
 });
+
+describe('<tiny-ai-chat> hardening', () => {
+  it('keeps streaming while closed and shows the reply when reopened', async () => {
+    replies = [{ events: [delta('first')], hold: true }];
+    const el = await mountChat();
+    await openChat(el);
+    await say(el, 'Hi');
+    $(el, '.launcher')!.click();
+    await act();
+    expect($(el, '.panel')).toBeNull();
+    await openChat(el);
+    await settle(() => expect(texts(el)).toEqual(['Hi', 'first']));
+  });
+
+  it('clearing during a reply stops it and leaves an empty conversation', async () => {
+    replies = [{ events: [delta('part')], hold: true }];
+    const el = await mountChat({ open: '' });
+    await say(el, 'Hi');
+    await settle(() => expect(texts(el)).toEqual(['Hi', 'part']));
+    $(el, 'header .icon')!.click();
+    await act();
+    await settle(() =>
+      expect((calls[0].init.signal as AbortSignal).aborted).toBe(true)
+    );
+    expect(texts(el)).toEqual([]);
+    expect($(el, 'form button')!.textContent).toBe('Send');
+  });
+
+  it('keeps separate conversations for separate endpoints', async () => {
+    const a = await mountChat({ open: '' });
+    await say(a, 'For A');
+    await settle(() => expect(texts(a)).toHaveLength(2));
+    a.remove();
+    const b = await mountChat({ open: '', endpoint: '/other' });
+    expect(texts(b)).toEqual([]);
+  });
+});

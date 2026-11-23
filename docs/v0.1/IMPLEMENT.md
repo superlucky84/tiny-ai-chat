@@ -11,7 +11,7 @@
 | 4 | 위젯 UI와 상태 | done |
 | 5 | 안전한 마크다운 | done |
 | 6 | 배포 템플릿과 로컬 실행 | done |
-| 7 | Test Hardening | todo |
+| 7 | Test Hardening | done |
 | 8 | Integration Test | todo |
 | 9 | 문서·데모·릴리스 준비 | todo |
 
@@ -270,20 +270,38 @@ Files:
 - `tsconfig.build.json` (modified)
 - `vite.config.js` (modified)
 
-## Phase 7 — Test Hardening: todo
+## Phase 7 — Test Hardening: done
 
-Refs: RQ-3, RQ-9, RQ-10, RQ-16
+Refs: RQ-3, RQ-5, RQ-9, RQ-10, RQ-16
 
 진입: Phase 5·6 완료.
 
-- [ ] 파서: 무작위 조각 분할 속성 테스트(같은 입력을 어떻게 잘라도 같은 이벤트)
-- [ ] 마크다운: XSS 사례 확장, 아주 긴 입력·깊은 중첩에서 시간 상한
-- [ ] 중계 서버: 느린 제공자·첫 글자 전 끊김·keep-alive 간격
-- [ ] 위젯: 빠른 연속 보내기, 받는 중 닫기·다시 열기, 저장소 접근 예외
-- [ ] 위젯 빌드 결과에 제공자 SDK·키 이름 문자열이 없는지 검사 (RQ-5)
-- [ ] 변이 확인: 핵심 분기 몇 개를 일부러 망가뜨려 테스트가 잡는지 기록
+- [x] 파서: 시드를 고정한 무작위 조각 분할 500회(LF·CRLF·CR, 한글·이모지, keep-alive 포함)에서 같은 이벤트
+- [x] 마크다운: 악의적 입력 10종(별표 2만 개, 닫히지 않은 굵게·링크, 대괄호 중첩, 백틱, `_` 반복, 주소 속 괄호, 긴 한 줄, 목록 5천 줄,
+  닫히지 않은 긴 코드 블록)이 각각 250ms 안에 끝남 — 정규식 폭주 없음
+- [x] 중계 서버: 첫 글자 전에 실패하는 제공자, 첫 글자 전 취소는 오류로 기록하지 않음, 동시 요청 20개가 섞이지 않음
+- [x] 위젯: 받는 중에 닫았다 다시 열어도 답이 이어짐, 받는 중 대화 지우기는 요청을 끊고 빈 대화로, endpoint마다 대화가 따로
+- [x] `scripts/check-bundle.mjs`(build 끝에서 실행): 위젯 번들 두 개에 제공자 호스트·SDK 이름·API 키 처리 문자열·`eval`이 없음 (RQ-5)
+- [x] ESLint 규칙(`src/widget`): JSX `innerHTML`, `innerHTML`·`outerHTML` 대입, `insertAdjacentHTML` 금지 (RQ-9).
+  처음에는 번들에서 `innerHTML`을 찾으려 했으나 lithent 코어가 자체 `innerHTML` prop 기능으로 그 글자를 가지고 있어, 위젯 소스 검사로 옮김.
+  일부러 넣은 두 형태를 모두 잡는 것을 확인
+- [x] `scripts/check-mutations.mjs`(`pnpm test:mutations`, CI): 안전장치 11개를 하나씩 망가뜨리고 해당 테스트가 실패하는지 —
+  파서 CRLF 보류, 출처 검사, 취소 시 제공자 abort, 오류 내용 숨김, 맨 앞 assistant 제거, 본문 크기 상한, Node 연결 끊김 abort,
+  Claude 거절 변환, 링크 주소 제한, 보낸 뒤 입력칸 비우기, IME 조합 중 Enter. **11개 모두 잡힘**
 
-완료: 추가 테스트 통과, 변이 기록.
+완료: 전체 140개 통과, 변이 11/11 검출, 번들 검사 통과, 크기 8.87KB.
+
+Files:
+- `.github/workflows/ci.yml` (modified)
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `eslint.config.js` (modified)
+- `package.json` (modified)
+- `scripts/check-bundle.mjs` (added)
+- `scripts/check-mutations.mjs` (added)
+- `src/relay/relay.test.ts` (modified)
+- `src/shared/protocol.test.ts` (modified)
+- `src/widget/ChatWidget.test.ts` (modified)
+- `src/widget/markdown.test.tsx` (modified)
 
 ## Phase 8 — Integration Test: todo
 
@@ -315,8 +333,8 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1~6 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2~6은 로컬 커밋.
+- 상태: Phase 1~7 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2~7은 로컬 커밋.
   2026-11-23 현재 GitHub에서 PR #1은 아직 열려 있음(사용자는 병합했다고 함 — 확인 필요).
-- 다음: Phase 7 — Test Hardening.
-- 막힌 것: 실제 키 점검(M-1~M-4)은 사용자가 준비되면 진행(2026-11-23 사용자: "건너뛰고 진행").
-- 최신 커밋: Phase 6 커밋.
+- 다음: Phase 8 — Playwright E2E(세 브라우저), 설치 소비자 검사.
+- 막힌 것: 실제 키 점검(M-1~M-4)은 사용자가 준비되면 진행.
+- 최신 커밋: Phase 7 커밋.
