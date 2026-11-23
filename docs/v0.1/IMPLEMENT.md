@@ -8,7 +8,7 @@
 | 1 | 저장소 뼈대와 CI | done |
 | 2 | 통신 규약과 중계 서버 핵심 | done |
 | 3 | 제공자 어댑터 3개 | done |
-| 4 | 위젯 UI와 상태 | todo |
+| 4 | 위젯 UI와 상태 | done |
 | 5 | 안전한 마크다운 | todo |
 | 6 | 배포 템플릿과 로컬 실행 | todo |
 | 7 | Test Hardening | todo |
@@ -152,22 +152,46 @@ Files:
 - `src/relay/gemini.ts` (added)
 - `src/relay/openai.ts` (added)
 
-## Phase 4 — 위젯 UI와 상태: todo
+## Phase 4 — 위젯 UI와 상태: done
 
 Refs: RQ-1, RQ-2, RQ-3, RQ-4, RQ-11, RQ-12, RQ-13, RQ-14, DC-10, DC-13, DC-14, DC-15
 
 진입: Phase 2 완료(규약 파서 사용).
 
-- [ ] 속성·프로퍼티·라벨 (DESIGN §3.1)
-- [ ] 런처·패널·머리글·메시지 목록·입력칸·보내기/멈추기, 위치 3종, 테마, 좁은 화면 전체 화면
-- [ ] fetch 스트림 읽기, 상태 흐름(§3.4), 프레임당 렌더, 아래 따라가기
-- [ ] 멈추기·오류·다시 시도·대화 지우기, 보존(sessionStorage, 실패 시 무시)
-- [ ] 이벤트 5종(§3.2), `chat-send` 취소
-- [ ] 접근성(§3.5)
-- [ ] 마크다운은 이 단계에서는 글자 그대로 표시(Phase 5에서 교체)
+- [x] 속성·프로퍼티·라벨 (DESIGN §3.1). 최신 props는 렌더 함수가 받은 값으로 갱신해 핸들러가 씀
+- [x] 런처(열림/닫힘 아이콘, `aria-expanded`)·패널(`role="dialog"`)·머리글(대화 지우기·닫기)·메시지 목록·입력칸·보내기/멈추기,
+  위치 3종(`bottom-right`·`bottom-left`·`inline`), 테마(`auto`·`light`·`dark`), 폭 480px 이하에서 전체 화면, CSS 변수 11개,
+  `::part()` 7개, 접근성 초점 표시
+- [x] `src/widget/chat.ts`: `ask()` — fetch → 상태 코드 오류(JSON의 `error.code`) → `readEventStream` → delta·done·error,
+  `done` 없이 끝나면 `network_error`, 멈춤은 AbortError 그대로. `store` — sessionStorage(예외는 무시)
+- [x] 상태 흐름(§3.4): 응답 대기(입력 중 표시) → 받는 중(프레임당 한 번 그리기, 맨 아래일 때만 따라 내려감) → 끝
+- [x] 멈추기(받은 글자 유지, `reason: 'aborted'`), 오류(`role="alert"`, `data-code`)·다시 시도(실패한 답 칸 제거 후 재요청),
+  대화 지우기, 보존(`persist`, 키 `tiny-ai-chat:<endpoint>`, 실패한 답은 저장하지 않음), `max-history`, `headers`, `with-credentials`
+- [x] 이벤트 5종(§3.2), `chat-send` 취소
+- [x] 접근성(§3.5): 열면 입력칸·닫으면 런처로 초점, `Esc`로 닫기, 완성된 답만 숨김 live region에. `Enter` 보내기,
+  `Shift+Enter` 줄바꿈, IME 조합 중 `Enter`(한국어 등)는 보내지 않음
+- [x] 마크다운은 아직 글자 그대로(`white-space: pre-wrap`) — Phase 5에서 교체
 
-기본 테스트: `lithent/test`로 — 열기·닫기·포커스, 보내기→delta→done, 멈추기, 오류 코드별 표시, 재시도, 보존 복원, 이벤트·취소.
-완료: 크기 예산 안, 단위 통과.
+찾은 문제와 고친 것:
+- 보낸 뒤 입력칸이 비지 않음(단위 테스트가 잡음): 입력 때 다시 그리지 않아 가상 `value`가 계속 `''`라서 lithent가 DOM을 건드리지 않았다.
+  보낼 때 textarea를 직접 비운다.
+- 아이콘이 보이지 않음(브라우저 확인에서 발견): lithent는 `<svg>`의 네임스페이스를 `xmlns` prop에서 가져오고, 없으면 문자열 `"undefined"`가 된다
+  (lithent 문서 Example17에 "xmlns 필수"로 적혀 있음). 아이콘을 `xmlns`를 붙이는 작은 함수로 만듦.
+  **lithent 개선 후보**: `xmlns` 없는 `<svg>`도 SVG 네임스페이스로 만들거나 개발 모드에서 경고.
+
+기본 테스트: `ChatWidget.test.ts` 22개(jsdom, 가짜 relay fetch) — 열기·닫기·초점·Esc, 처음부터 열림·인사말, inline, 라벨,
+스트리밍 표시와 이벤트·live region·입력칸 비우기, 이전 대화 포함, `max-history`, 입력 중 표시, 길이 잘림 표시, 멈추기, 빈 글·중복 보내기 막기,
+`chat-send` 취소, 헤더·자격 증명, 오류 4종(403·fetch 실패·error 이벤트·done 없음)과 다시 시도, Shift·IME Enter, 보존 복원·`none`·지우기·저장소 예외.
+브라우저 확인(Chromium, 빌드한 IIFE + 가짜 제공자 relay): 1280px·390px에서 열기·보내기·스트리밍·완료, 가로 넘침 0, 페이지 오류 0,
+페이지의 button·p 스타일이 위젯에 스며들지 않음.
+완료: 전체 88개 통과, 크기 **8.28KB** brotli (예산 10KB, 남은 1.72KB).
+
+Files:
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `src/widget/ChatWidget.test.ts` (modified)
+- `src/widget/ChatWidget.tsx` (modified)
+- `src/widget/chat-widget.css` (modified)
+- `src/widget/chat.ts` (added)
 
 ## Phase 5 — 안전한 마크다운: todo
 
@@ -241,7 +265,7 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1~3 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2·3은 그 뒤 커밋.
-- 다음: Phase 4 — 위젯 UI와 상태 (`src/shared/protocol.ts`의 `readEventStream` 사용).
+- 상태: Phase 1~4 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1(CI 통과, 병합 대기), Phase 2~4는 로컬 커밋.
+- 다음: Phase 5 — 안전한 마크다운 (남은 크기 1.72KB).
 - 막힌 것: 없음.
-- 최신 커밋: Phase 3 커밋.
+- 최신 커밋: Phase 4 커밋.
