@@ -22,7 +22,7 @@ Gemini or Anthropic Claude.
 
 **[Live demo](https://superlucky84.github.io/tiny-ai-chat/)** (runs without an AI: prepared replies, the real widget)
 
-> Status: v0.1 in development, not published to npm yet. 한국어:
+> v0.1.0 on [npm](https://www.npmjs.com/package/tiny-ai-chat). Connecting to real providers is covered by tests with fake clients; checks against the live APIs are still pending. 한국어:
 > [README.ko.md](./README.ko.md)
 
 ## Quick start

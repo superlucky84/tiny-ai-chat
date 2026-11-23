@@ -14,4 +14,4 @@
 | M-6 | 실제 사이트에 붙이기 | CSS가 많은 실제 사이트(예: lithent 문서 사이트 로컬 빌드)에 script 한 줄로 붙여 모양이 깨지지 않고, 페이지 모양도 바뀌지 않는다. CSS 변수로 색을 바꿀 수 있다 | Phase 9 | |
 | M-7 | 휴대폰 실기기 | iOS Safari·Android Chrome에서 열기·입력·보내기·닫기. 키보드가 올라와도 입력칸이 가려지지 않는다 | Phase 9 | |
 | M-8 | 스크린리더 | VoiceOver(macOS 또는 iOS)로 런처 → 질문 → 완성된 답이 한 번 읽힘 → Esc로 닫고 런처로 돌아옴 | Phase 9 | |
-| M-9 | 발행 뒤 CDN | npm 발행본을 jsDelivr script 태그로 붙여 M-1~M-3 중 하나를 다시 통과. README의 3분 시작을 처음부터 그대로 따라 해서 된다 | 발행 후 | |
+| M-9 | 발행 뒤 CDN | npm 발행본을 jsDelivr script 태그로 붙여 M-1~M-3 중 하나를 다시 통과. README의 3분 시작을 처음부터 그대로 따라 해서 된다 | 발행 후 | 2026-11-23 일부 통과 — `templates/node`를 새로 복사해 `npm install`(npm의 `tiny-ai-chat@0.1.0`)·`npm start`(데모 제공자), 데모 페이지가 jsDelivr에서 위젯(200, 24,372B)을 받아 대화 1턴 스트림 완료, 페이지 오류 0. unpkg·`dist/tiny-ai-chat.d.ts`도 200. 실제 제공자로 하는 부분은 M-1~M-3과 함께 보류 |

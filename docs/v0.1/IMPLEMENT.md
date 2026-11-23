@@ -13,7 +13,7 @@
 | 6 | 배포 템플릿과 로컬 실행 | done |
 | 7 | Test Hardening | done |
 | 8 | Integration Test | done (실제 키 점검 M-1~M-3 보류) |
-| 9 | 문서·데모·릴리스 준비 | in progress |
+| 9 | 문서·데모·릴리스 준비 | done (실제 키 점검 보류) |
 
 공통 완료 조건: `pnpm lint`, `pnpm type-check`, `pnpm test` 통과, 위젯을 건드린 단계는 `pnpm build` 뒤 크기 예산(10KB) 안,
 단계마다 이 표와 해당 절의 체크박스·`Files:` 갱신.
@@ -344,7 +344,7 @@ Files:
 - `tsconfig.json` (modified)
 - `vite.config.js` (modified)
 
-## Phase 9 — 문서·데모·릴리스 준비: in progress
+## Phase 9 — 문서·데모·릴리스 준비: done (실제 키 점검 보류)
 
 Refs: RQ-15, DC-17
 
@@ -365,13 +365,15 @@ Refs: RQ-15, DC-17
 - [x] 릴리스 준비: 버전 0.1.0, `"private"` 해제, `prepublishOnly: pnpm build`, CHANGELOG 0.1.0,
   `.github/workflows/release.yml`(`v*` 태그 → 태그와 버전 일치 확인 → 검사 → 이미 npm에 있으면 건너뜀 → npm 신뢰 발행),
   RELEASING을 첫 발행(수동)·신뢰 발행 설정·이후 릴리스 순서로 다시 씀
-- [ ] npm 첫 발행 — 사용자
-- [ ] 수동 점검 M-4~M-9 (M-4·M-5는 실제 키 필요 — 보류)
+- [x] npm 첫 발행 — 사용자, 2026-11-23 08:37 UTC `tiny-ai-chat@0.1.0`(25파일, 260KB 풀린 크기, `latest`). 데모 Pages 공개(https://superlucky84.github.io/tiny-ai-chat/,
+  공개 주소에서 데스크톱·휴대폰 대화 확인). 발행 뒤 점검 M-9 일부 통과(아래 MANUAL). README 상태 줄·CHANGELOG 날짜 갱신
+- [ ] 사용자: npmjs.com 신뢰 발행 설정(`release.yml`), GitHub 릴리스 `v0.1.0`
+- [ ] 수동 점검 M-4~M-8 (M-4·M-5는 실제 키 필요 — 보류), M-9 실제 제공자 부분
 
 ## 인계
 
-- 상태: Phase 1~8과 Phase 9 문서·데모 병합(PR #1, #2). 릴리스 준비(버전 0.1.0 등)는 릴리스 PR.
-- 다음: 릴리스 PR 병합 → 사용자가 npm 첫 발행(RELEASING) → 신뢰 발행 설정 → GitHub 릴리스 `v0.1.0` → M-9.
-  데모는 저장소 설정에서 Pages를 켜면 배포된다.
-- 막힌 것: 실제 키 점검(M-1~M-5)은 사용자가 준비되면 진행.
-- 최신 커밋: 릴리스 준비 커밋.
+- 상태: v0.1 구현 완료·발행(2026-11-23, `tiny-ai-chat@0.1.0`), 데모 공개.
+- 다음: 사용자 — 신뢰 발행 설정, GitHub 릴리스 `v0.1.0`. 실제 키가 준비되면 M-1~M-5와 M-9 나머지.
+  수동 점검 M-6(실제 사이트)·M-7(휴대폰 실기기)·M-8(스크린리더).
+- 막힌 것: 실제 키(사용자 준비 중).
+- 최신 커밋: 발행 기록 커밋.
