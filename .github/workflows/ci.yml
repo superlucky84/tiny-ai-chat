@@ -32,5 +32,35 @@ jobs:
       - run: pnpm format:check
       - run: pnpm type-check
       - run: pnpm test
+      - name: Check that the tests catch broken safeguards
+        run: pnpm test:mutations
       - name: Build and check the widget size budget
         run: pnpm build
+      - name: Run the relay templates against the build
+        run: pnpm check:templates
+      - name: Install the packed package in an empty project
+        run: pnpm check:package
+
+  browser:
+    name: Browser (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Install ${{ matrix.browser }}
+        timeout-minutes: 12
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+      - run: pnpm test:e2e --project=${{ matrix.browser }}
