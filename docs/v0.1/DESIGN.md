@@ -33,6 +33,8 @@ npm 패키지 하나 `tiny-ai-chat` (DC-1).
 | `tiny-ai-chat/relay/gemini` | `gemini({ apiKey, model, … })` 어댑터 | ESM + `.d.ts` |
 | `tiny-ai-chat/relay/anthropic` | `anthropic({ apiKey, model, … })` 어댑터 | ESM + `.d.ts` |
 | `tiny-ai-chat/protocol` | 규약 타입, 이벤트 인코더·파서 (자기 백엔드·클라이언트용) | ESM + `.d.ts` |
+| `tiny-ai-chat/relay/node` | `toNodeHandler(relay)` — Node `http`·Express의 `(req, res)`에 핸들러를 붙임 (DC-20) | ESM + `.d.ts` |
+| `tiny-ai-chat/relay/fake` | `fake()` — 키 없이 받은 말을 되돌려 주는 데모 제공자 (DC-21) | ESM + `.d.ts` |
 
 - 제공자 SDK(`openai`, `@google/genai`, `@anthropic-ai/sdk`)는 **선택 peer 의존성**이다
   (`peerDependenciesMeta.*.optional`). 어댑터 파일마다 자기 SDK만 import하므로, 쓰는 제공자의 SDK만 설치하면 되고
@@ -223,8 +225,8 @@ export default {
 
 | 템플릿 | 내용 |
 |---|---|
-| `templates/cloudflare-worker/` | `wrangler.toml`, `src/index.ts`, README(비밀 등록: `wrangler secret put`) |
-| `templates/node/` | `server.mjs`(`node:http` + 어댑터, `.env` 읽기), README |
+| `templates/cloudflare-worker/` | `wrangler.toml`, `src/index.ts`(환경 변수로 제공자 선택), README(비밀 등록: `wrangler secret put`) |
+| `templates/node/` | `server.mjs`(`node:http` + `toNodeHandler`, `node --env-file=.env`), 환경 변수로 제공자 선택(`PROVIDER=fake`면 키 없이 바로 시험), README |
 
 ## 6. 제공자 어댑터
 
@@ -326,6 +328,10 @@ type Provider = {
 - [x] **DC-19 제공자 오류는 스트림 안에서 알린다.** 첫 글자를 기다린 뒤 머리글을 보내면, 사고 시간이 긴 모델에서 프록시의
   첫 바이트 시간 제한(예: Cloudflare 100초)에 걸릴 수 있고 keep-alive도 보낼 수 없다. 그래서 요청 검사가 끝나면 바로 `200`을 보내고,
   제공자 오류는 `event: error`로 보낸다. 요청 자체의 문제(400·403·405·413·429)는 지금처럼 상태 코드로 답한다.
+- [x] **DC-20 Node 연결 도우미를 패키지에 넣는다.** Node의 `IncomingMessage`↔`Request`, `Response`→`ServerResponse` 변환과 연결 끊김 →
+  `request.signal` abort를 사용자가 매번 짜지 않게 `toNodeHandler`로 낸다. Express에도 그대로 붙는다. 템플릿과 저장소 개발 서버가 같은 코드를 쓴다.
+- [x] **DC-21 키 없는 데모 제공자 `fake()`.** 받은 말을 마크다운이 섞인 답으로 천천히 되돌려 준다. 처음 쓰는 사람이 키 없이 위젯·중계 서버를
+  1분 안에 띄워 보고(`PROVIDER=fake`), 저장소 개발 서버와 E2E도 같은 것을 쓴다. 실제 제공자 코드에는 영향이 없다.
 - [ ] **DC-17 데모 페이지 — TBD.** 후보: (a) GitHub Pages에 위젯을 두고 데모 페이지 스크립트가 `fetch`를 가로채 정해진 답을
   스트리밍(키 없음, 비용 없음), (b) 사용자 계정의 Workers에 낮은 상한으로 실제 모델 연결. Phase 9 전에 사용자와 정한다.
 - [x] **DC-18 첫 커밋은 `main`, 이후는 작업 브랜치 + PR.** 사용자 결정(2026-11-23). 저장소가 비어 있어 처음 푸시한 브랜치가

@@ -48,6 +48,14 @@
       "types": "./dist/relay/anthropic.d.ts",
       "default": "./dist/relay/anthropic.js"
     },
+    "./relay/node": {
+      "types": "./dist/relay/node.d.ts",
+      "default": "./dist/relay/node.js"
+    },
+    "./relay/fake": {
+      "types": "./dist/relay/fake.d.ts",
+      "default": "./dist/relay/fake.js"
+    },
     "./protocol": {
       "types": "./dist/shared/protocol.d.ts",
       "default": "./dist/shared/protocol.js"
@@ -66,9 +74,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\"",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{js,json,html}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{js,json,html}\"",
-    "type-check": "tsc --noEmit"
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{js,json,html}\" \"templates/**/*.{mjs,ts,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{js,json,html}\" \"templates/**/*.{mjs,ts,json}\"",
+    "type-check": "tsc --noEmit",
+    "check:templates": "node scripts/check-templates.mjs"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": "^1.12.0",

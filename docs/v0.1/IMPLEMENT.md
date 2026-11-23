@@ -10,7 +10,7 @@
 | 3 | 제공자 어댑터 3개 | done |
 | 4 | 위젯 UI와 상태 | done |
 | 5 | 안전한 마크다운 | done |
-| 6 | 배포 템플릿과 로컬 실행 | todo |
+| 6 | 배포 템플릿과 로컬 실행 | done |
 | 7 | Test Hardening | todo |
 | 8 | Integration Test | todo |
 | 9 | 문서·데모·릴리스 준비 | todo |
@@ -222,19 +222,53 @@ Files:
 - `src/widget/markdown.test.tsx` (added)
 - `src/widget/markdown.tsx` (added)
 
-## Phase 6 — 배포 템플릿과 로컬 실행: todo
+## Phase 6 — 배포 템플릿과 로컬 실행: done
 
-Refs: RQ-6, RQ-15
+Refs: RQ-6, RQ-15, DC-20, DC-21
 
 진입: Phase 3·4 완료.
 
-- [ ] `templates/node/` (`node:http` 어댑터, `.env`, 제공자 선택)
-- [ ] `templates/cloudflare-worker/` (`wrangler.toml`, 비밀 등록 안내)
-- [ ] 저장소 `pnpm dev`: 호스트 페이지 + 가짜 제공자 중계 서버 (키 없이 위젯 개발)
-- [ ] `pnpm dev:real`: 환경 변수의 실제 키로 Node 중계 서버 (수동 점검용, 키는 `.env`이고 git 제외)
+- [x] DESIGN 갱신(코드보다 먼저): DC-20 `tiny-ai-chat/relay/node`(`toNodeHandler`), DC-21 `tiny-ai-chat/relay/fake`(키 없는 데모 제공자), §2 표, §5.1 템플릿
+- [x] `src/relay/node.ts`: Node `IncomingMessage` → `Request`(본문은 스트림, `duplex: 'half'`), `Response` → `ServerResponse`,
+  연결이 끊기면 `request.signal` abort와 응답 읽기 취소. Express에도 그대로 붙음
+- [x] `src/relay/fake.ts`: 받은 말을 마크다운이 섞인 답으로 단어마다 30ms 간격으로 되돌려 줌, abort하면 멈춤
+- [x] 중계 서버: 본문을 상한까지만 읽고 넘으면 413 (Content-Length 없는 chunked 본문 대비 — `request.text()` 대신)
+- [x] `templates/node/`: `server.mjs`(환경 변수로 제공자 선택, 고른 SDK만 동적 import, `/api/chat` 중계 + `/` 데모 페이지, 자기 출처 자동 허용),
+  `.env.example`, `package.json`(`node --env-file-if-exists=.env`, Node 22.9+), README(키 없이 시험 → 제공자 연결 → 공개 전 점검)
+- [x] `templates/cloudflare-worker/`: `src/index.ts`(Claude 기본, OpenAI·Gemini 교체 방법은 주석, `PROVIDER=fake`면 키 없이), `wrangler.toml`
+  (`nodejs_compat`, vars, 비밀은 `wrangler secret put`), `package.json`(wrangler 4.166), README
+- [x] 저장소 `pnpm dev`: Vite 개발 서버가 `/api/chat`에 중계 서버를 붙임(src를 직접 불러 수정이 바로 반영). 기본은 데모 제공자,
+  `.env`(git 제외)에 `PROVIDER`·`MODEL`·키를 두면 실제 제공자 — 계획의 `pnpm dev:real`은 따로 두지 않고 `.env`로 대신함
+- [x] `scripts/check-templates.mjs`(`pnpm check:templates`, CI의 build 뒤): 두 템플릿을 임시 폴더에 복사하고 `node_modules/tiny-ai-chat`을
+  이 저장소로 연결해 설치본처럼 실행. Node — 서버 기동, 스트림·`done`, 다른 출처 403, 데모 페이지, 404. Workers — `src/index.ts`가 패키지
+  공개 타입으로 타입 검사 통과, `fetch`를 Node에서 불러 `PROVIDER=fake`로 스트림
+- [x] 빌드 수정: `tsconfig.build.json`에 `DOM.Iterable`(없어서 `node.ts` 타입 오류였는데 tsc가 파일은 써서 템플릿 검사는 통과했었다)과
+  `noEmitOnError`(타입 오류면 빌드가 실패하고 파일도 쓰지 않게)
 
-기본 테스트: Node 템플릿을 띄워 가짜 제공자로 요청 1회(통합 테스트 스크립트).
-완료: 두 템플릿 README대로 따라 하면 뜬다(Workers는 `wrangler dev`까지, 배포는 수동 M-4).
+기본 테스트: `node.test.ts` 6개 — 실제 `node:http` 서버로 스트림·상태 코드·preflight, 방문자 연결 끊김 → 제공자 abort, chunked 본문 413,
+데모 제공자 되돌려 주기·abort. `pnpm check:templates` 7항목 통과. `pnpm dev`에서 `/api/chat` 스트림과 호스트 페이지 확인.
+완료: 전체 123개 통과, 크기 8.87KB 그대로. 실제 키로 Workers 배포(M-4)는 사용자 준비 뒤로 미룸.
+
+Files:
+- `.github/workflows/ci.yml` (modified)
+- `docs/v0.1/DESIGN.md` (modified)
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `package.json` (modified)
+- `scripts/check-templates.mjs` (added)
+- `src/relay/fake.ts` (added)
+- `src/relay/index.ts` (modified)
+- `src/relay/node.test.ts` (added)
+- `src/relay/node.ts` (added)
+- `templates/cloudflare-worker/README.md` (added)
+- `templates/cloudflare-worker/package.json` (added)
+- `templates/cloudflare-worker/src/index.ts` (added)
+- `templates/cloudflare-worker/wrangler.toml` (added)
+- `templates/node/.env.example` (added)
+- `templates/node/README.md` (added)
+- `templates/node/package.json` (added)
+- `templates/node/server.mjs` (added)
+- `tsconfig.build.json` (modified)
+- `vite.config.js` (modified)
 
 ## Phase 7 — Test Hardening: todo
 
@@ -281,7 +315,8 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1~5 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1(CI 통과, 병합 대기), Phase 2~5는 로컬 커밋.
-- 다음: Phase 6 — Node·Workers 템플릿, `pnpm dev`(가짜 제공자 relay), `pnpm dev:real`.
-- 막힌 것: 없음. 실제 제공자 점검(M-1~M-3)에는 사용자의 API 키가 필요.
-- 최신 커밋: Phase 5 커밋.
+- 상태: Phase 1~6 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2~6은 로컬 커밋.
+  2026-11-23 현재 GitHub에서 PR #1은 아직 열려 있음(사용자는 병합했다고 함 — 확인 필요).
+- 다음: Phase 7 — Test Hardening.
+- 막힌 것: 실제 키 점검(M-1~M-4)은 사용자가 준비되면 진행(2026-11-23 사용자: "건너뛰고 진행").
+- 최신 커밋: Phase 6 커밋.

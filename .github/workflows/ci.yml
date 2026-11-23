@@ -34,3 +34,5 @@ jobs:
       - run: pnpm test
       - name: Build and check the widget size budget
         run: pnpm build
+      - name: Run the relay templates against the build
+        run: pnpm check:templates

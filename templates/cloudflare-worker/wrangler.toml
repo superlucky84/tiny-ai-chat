@@ -1,0 +1,15 @@
+name = "tiny-ai-chat-relay"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# fake: try the Worker without a key. Remove it to use Claude.
+PROVIDER = "fake"
+MODEL = "claude-opus-5-5"
+SYSTEM_PROMPT = "You answer questions about example.com. Keep answers short."
+# The sites that may use this relay, comma-separated.
+ALLOWED_ORIGINS = "https://example.com"
+
+# The API key is a secret, not a var:
+#   npx wrangler secret put ANTHROPIC_API_KEY

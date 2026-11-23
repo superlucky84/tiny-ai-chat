@@ -3,7 +3,11 @@
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "strict": true,
     "declaration": true,
     "declarationMap": false,
@@ -13,8 +17,17 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
-    "types": []
+    "types": [
+      "node"
+    ],
+    "noEmitOnError": true
   },
-  "include": ["src/relay", "src/shared"],
-  "exclude": ["src/**/*.test.ts", "src/relay/testing"]
+  "include": [
+    "src/relay",
+    "src/shared"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/relay/testing"
+  ]
 }

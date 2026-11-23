@@ -92,6 +92,26 @@ export const errorResponse = (
     headers: { 'content-type': 'application/json', ...headers },
   });
 
+/**
+ * Reads the body as text, giving up with `null` once it passes `limit`
+ * characters, so a chunked body without Content-Length cannot run long.
+ */
+const readText = async (request: Request, limit: number) => {
+  if (!request.body) return '';
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    text += decoder.decode(value, { stream: true });
+    if (text.length > limit) {
+      await reader.cancel();
+      return null;
+    }
+  }
+};
+
 const isMessage = (value: unknown): value is ChatMessage => {
   const m = value as ChatMessage;
   return (
@@ -199,13 +219,13 @@ export const createRelay = <Env = unknown>(
     const limit = maxMessages * maxMessageChars * 2 + 4096;
     const length = Number(request.headers.get('content-length'));
     if (length > limit * 4) return errorResponse('too_large', cors);
-    let text: string;
+    let text: string | null;
     try {
-      text = await request.text();
+      text = await readText(request, limit);
     } catch {
       return errorResponse('bad_request', cors);
     }
-    if (text.length > limit) return errorResponse('too_large', cors);
+    if (text === null) return errorResponse('too_large', cors);
 
     let body: { messages?: unknown };
     try {

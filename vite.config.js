@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import checker from 'vite-plugin-checker';
 import lithentVitePlugin from '@lithent/lithent-vite';
 
@@ -38,12 +38,44 @@ const hostPage = () => ({
   },
 });
 
+/**
+ * `pnpm dev` serves a relay at /api/chat, built from src/ so edits apply on
+ * the next request. It uses the demo provider unless .env (gitignored) sets
+ * PROVIDER=openai|gemini|anthropic, MODEL and that provider's API key.
+ */
+const devRelay = () => ({
+  name: 'tiny-ai-chat-dev-relay',
+  apply: 'serve',
+  configureServer(server) {
+    const env = loadEnv(server.config.mode, import.meta.dirname, '');
+    server.middlewares.use('/api/chat', async (req, res) => {
+      const load = path => server.ssrLoadModule(path);
+      const { createRelay } = await load('/src/relay/index.ts');
+      const { toNodeHandler } = await load('/src/relay/node.ts');
+      const name = env.PROVIDER || 'fake';
+      const factory = (await load(`/src/relay/${name}.ts`))[name];
+      const provider = factory({
+        model: env.MODEL,
+        apiKey: env[`${name.toUpperCase()}_API_KEY`],
+      });
+      const relay = createRelay({
+        provider,
+        system: env.SYSTEM_PROMPT,
+        allowedOrigins: '*',
+        allowNoOrigin: true,
+      });
+      toNodeHandler(relay)(req, res);
+    });
+  },
+});
+
 export default defineConfig({
   plugins: [
     // Hot-swaps edited components. A custom element cannot be defined twice,
     // so edits to main.ts, the props or the CSS reload the page instead.
     lithentVitePlugin(),
     hostPage(),
+    devRelay(),
     !process.env.VITEST &&
       checker({
         typescript: true,
