@@ -36,6 +36,18 @@
       "types": "./dist/relay/index.d.ts",
       "default": "./dist/relay/index.js"
     },
+    "./relay/openai": {
+      "types": "./dist/relay/openai.d.ts",
+      "default": "./dist/relay/openai.js"
+    },
+    "./relay/gemini": {
+      "types": "./dist/relay/gemini.d.ts",
+      "default": "./dist/relay/gemini.js"
+    },
+    "./relay/anthropic": {
+      "types": "./dist/relay/anthropic.d.ts",
+      "default": "./dist/relay/anthropic.js"
+    },
     "./protocol": {
       "types": "./dist/shared/protocol.d.ts",
       "default": "./dist/shared/protocol.js"
@@ -58,8 +70,26 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{js,json,html}\"",
     "type-check": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "@google/genai": "^3.6.1",
+    "openai": "^7.62.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "@google/genai": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@anthropic-ai/sdk": "1.12.0",
     "@eslint/js": "^9.16.0",
+    "@google/genai": "3.6.1",
     "@lithent/lithent-vite": "^0.4.1",
     "@testing-library/dom": "^10.4.2",
     "@types/node": "^22.12.0",
@@ -68,6 +98,7 @@
     "globals": "^16.5.0",
     "jsdom": "^31.0.1",
     "lithent": "^1.26.0",
+    "openai": "7.62.0",
     "prettier": "^3.4.2",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.17.0",

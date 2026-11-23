@@ -6,8 +6,8 @@
 |---|---|---|
 | 0 | 문서 작성 | done |
 | 1 | 저장소 뼈대와 CI | done |
-| 2 | 통신 규약과 중계 서버 핵심 | todo |
-| 3 | 제공자 어댑터 3개 | todo |
+| 2 | 통신 규약과 중계 서버 핵심 | done |
+| 3 | 제공자 어댑터 3개 | done |
 | 4 | 위젯 UI와 상태 | todo |
 | 5 | 안전한 마크다운 | todo |
 | 6 | 배포 템플릿과 로컬 실행 | todo |
@@ -84,33 +84,73 @@ Files:
 - `tsconfig.json` (added)
 - `vite.config.js` (added)
 
-## Phase 2 — 통신 규약과 중계 서버 핵심: todo
+## Phase 2 — 통신 규약과 중계 서버 핵심: done
 
-Refs: RQ-6, RQ-7, RQ-8, DC-3, DC-8, DC-9
+Refs: RQ-6, RQ-7, RQ-8, DC-3, DC-8, DC-9, DC-19
 
 진입: Phase 1 완료.
 
-- [ ] `src/shared/protocol.ts`: 타입, `encodeEvent`, 스트림 파서(조각 경계·CRLF·여러 줄 `data`·주석)
-- [ ] `src/relay/index.ts`: `createRelay` — 옵션 검사(필수 `provider`·`allowedOrigins`), 메서드, CORS·출처,
-  `onRequest`, 본문 검사·자르기, `provider.stream()` → SSE, keep-alive, `request.signal` 전파, 오류 변환, `onError`
-- [ ] 가짜 제공자(`test/fakes/provider.ts`): 정해진 조각을 정해진 간격으로 내보냄, 중간 오류·거절·상한 흉내
+- [x] `src/shared/protocol.ts`: 타입, `encodeEvent`, `KEEP_ALIVE`, 스트림 파서(조각 경계·CRLF·CR·나뉜 CRLF·여러 줄 `data`·주석),
+  `readEventStream`(UTF-8 조각 해독)
+- [x] `src/relay/index.ts`: `createRelay` — 옵션 검사(`provider`·`allowedOrigins` 필수, `'*'`와 `allowCredentials` 동시 금지),
+  `env => 옵션` 함수(같은 env 객체는 한 번만 만듦), 메서드, CORS·출처(`allowNoOrigin`, `allowCredentials`), `onRequest`(돌려준 응답에
+  CORS 머리글 추가), 본문 크기 상한·검사·자르기(맨 앞 `assistant` 제거), 바로 `200` + keep-alive, `provider.stream()` → SSE,
+  제공자 오류는 일반 문구의 `event: error` + `onError`, 스트림 취소와 `request.signal`로 제공자 abort
+- [x] `src/relay/testing/fakeProvider.ts`: 정해진 조각·간격·끝 이유·오류를 흉내 내고 받은 입력을 기록
+- [x] 빌드: `tsconfig.build.json`으로 `src/relay`·`src/shared`를 `dist/`에 JS + `.d.ts`로 (import는 `.js` 확장자라 Node ESM·NodeNext에서 그대로 풀림),
+  `exports`에 `./relay`·`./protocol`
+- [x] DESIGN 갱신(코드보다 먼저): DC-19(제공자 오류는 스트림 안에서), §4.3 표, `allowCredentials` 옵션, 본문 크기 상한
 
-기본 테스트: 파서 단위(경계 사례), 중계 서버 단위 — DESIGN §4.3 표의 상태 코드마다 1개 이상, 끊김 시 제공자 signal abort 확인.
-완료: 규약 적합성 테스트 묶음이 생기고 통과.
+기본 테스트: `protocol.test.ts` 9개(왕복, 1~12자 조각 분할, CRLF/CR/나뉜 CRLF, 여러 줄 data, 모르는 필드, 마지막 빈 줄 없음,
+UTF-8 조각), `relay.test.ts` 28개(§4.3의 400·403·405·413·429·500 각각, preflight, `'*'`, 자격 증명, 자르기, 시스템 프롬프트·상한 전달,
+delta·done, 끝 이유 없음, 오류 숨김과 `onError`, keep-alive, 스트림 취소·요청 signal abort).
+음성 대조: 파서의 `\r` 보류를 끄면 "나뉜 CRLF" 테스트가 실패하는 것을 확인.
+완료: 39개 통과(위젯 2개 포함).
 
-## Phase 3 — 제공자 어댑터 3개: todo
+Files:
+- `docs/v0.1/DESIGN.md` (modified)
+- `package.json` (modified)
+- `src/relay/index.ts` (added)
+- `src/relay/relay.test.ts` (added)
+- `src/relay/testing/fakeProvider.ts` (added)
+- `src/relay/types.ts` (added)
+- `src/shared/protocol.test.ts` (added)
+- `src/shared/protocol.ts` (added)
+- `tsconfig.build.json` (added)
+
+## Phase 3 — 제공자 어댑터 3개: done
 
 Refs: RQ-5, DC-4, DC-5, DC-6, DC-7
 
-진입: Phase 2 완료. 설치한 SDK 버전으로 DESIGN §6 호출 모양을 다시 확인하고 다르면 DESIGN을 먼저 고친다.
+진입: Phase 2 완료. 설치한 SDK(`@anthropic-ai/sdk` 1.12.0, `openai` 7.62.0, `@google/genai` 3.6.1)의 타입으로 DESIGN §6 호출 모양을
+확인했다 — 그대로 맞아 DESIGN 변경 없음. 어댑터는 실제 SDK 타입으로 `tsc` 검사를 통과한다.
 
-- [ ] `src/relay/openai.ts` (Responses API 스트림)
-- [ ] `src/relay/gemini.ts` (`generateContentStream`, 역할 변환)
-- [ ] `src/relay/anthropic.ts` (`beta.messages.stream`, `fallbacks: 'default'`, `effort` 옵션, 사고 블록 무시)
-- [ ] 각 어댑터: `client` 주입, `model` 필수 검사, 끝 이유 변환, signal 전달
+- [x] `src/relay/openai.ts`: `responses.create({ …extra, model, input, max_output_tokens, instructions?, stream: true }, { signal })`.
+  `response.output_text.delta` → 글자, `response.refusal.delta` → 글자 + `refusal`, `response.incomplete`(`content_filter` → `refusal`,
+  `max_output_tokens`·`max_messages` → `length`), `response.failed`·`error` → 던짐
+- [x] `src/relay/gemini.ts`: `models.generateContentStream({ model, contents(assistant→model), config: { …extra, maxOutputTokens, abortSignal,
+  systemInstruction? } })`. `finishReason` `STOP`/`MAX_TOKENS`/그 밖 → `stop`/`length`/`refusal`, `promptFeedback.blockReason` → `refusal`
+- [x] `src/relay/anthropic.ts`: `beta.messages.stream({ model, max_tokens, messages, system?, output_config.effort?, betas:
+  ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, { signal })`. `text_delta`만 글자(사고 블록 무시), `stop_reason`
+  `refusal`/`max_tokens`·`model_context_window_exceeded`/그 밖 → `refusal`/`length`/`stop`. `fallbacks: false`면 베타와 fallback을 빼고 보낸다
+- [x] 공통: `model` 필수, `apiKey` 또는 `client` 필수, `client` 주입, signal 전달
+- [x] `package.json`: `./relay/openai`·`./relay/gemini`·`./relay/anthropic` exports, 세 SDK를 선택 peer 의존성(`peerDependenciesMeta.optional`)과
+  개발 의존성으로
 
-기본 테스트: 어댑터마다 가짜 클라이언트로 글자 이벤트·끝 이유 3종·SDK 오류 던짐·signal 전달. 이벤트 모양은 SDK 타입에서 가져온다.
-완료: 세 어댑터가 같은 공통 테스트 묶음(`provider contract`)을 통과.
+기본 테스트: `adapters.test.ts` 29개 — 세 어댑터가 같은 계약 묶음(글자·`stop`·`length`·`refusal`·SDK 오류 통과·`createRelay` 뒤에서
+SSE까지)을 통과, `model`·키 필수, 제공자별 요청 모양(Claude fallback 기본값·끄기·effort, OpenAI instructions·input·상한·거절 글자·실패 이벤트,
+Gemini 역할 변환·abortSignal·차단된 프롬프트).
+빌드한 `dist/relay/*.js`를 Node ESM에서 바로 import해 가짜 클라이언트로 요청 1회와 세 어댑터 생성 확인.
+완료: 전체 68개 통과, 위젯 크기 변화 없음(5.43KB). 실제 API 호출은 수동 M-1~M-3(Phase 8).
+
+Files:
+- `docs/v0.1/IMPLEMENT.md` (modified)
+- `package.json` (modified)
+- `pnpm-lock.yaml` (modified)
+- `src/relay/adapters.test.ts` (added)
+- `src/relay/anthropic.ts` (added)
+- `src/relay/gemini.ts` (added)
+- `src/relay/openai.ts` (added)
 
 ## Phase 4 — 위젯 UI와 상태: todo
 
@@ -201,7 +241,7 @@ Refs: RQ-15, DC-17
 
 ## 인계
 
-- 상태: Phase 1 완료(작업 브랜치 `ccr-3e48bc24-eapswq`).
-- 다음: Phase 2 — `src/shared/protocol.ts`와 `createRelay`.
+- 상태: Phase 1~3 완료(작업 브랜치 `ccr-3e48bc24-eapswq`). Phase 1은 PR #1, Phase 2·3은 그 뒤 커밋.
+- 다음: Phase 4 — 위젯 UI와 상태 (`src/shared/protocol.ts`의 `readEventStream` 사용).
 - 막힌 것: 없음.
-- 최신 커밋: Phase 1 커밋 (PR로 `main`에 합칠 예정).
+- 최신 커밋: Phase 3 커밋.
